@@ -76,6 +76,8 @@ h3 { font-size: 15px; margin: 0 0 6px; font-weight: 600; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* ---------- 卡片 ---------- */
+.trip-detail { margin-top: 10px; padding: 12px 14px; background: var(--surface-2); border-radius: 10px; font-size: 14px; color: var(--text-2); line-height: 1.9; }
+.trip-card .link-btn { margin-top: 0; }
 .cards { display: grid; gap: 12px; }
 .card {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
