@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>诊断 v3</title>
+<style>body{font-family:system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 16px}pre{background:#f4f4f5;padding:16px;border-radius:8px;white-space:pre-wrap;word-break:break-all}</style>
+</head><body>
+<h2>诊断 v3（临时页）</h2>
+<pre id="out">测试中…</pre>
+<script>
+(async function(){
+  var out = document.getElementById('out');
+  out.textContent = '';
+  function log(s){ out.textContent += s + "\n"; }
+
+  // A: 你的浏览器拿到的求职网站首页是新版还是旧版？
+  try {
+    var r = await fetch('https://rutie1.github.io/job-hunt/?t=' + Date.now(), {cache: 'no-store'});
+    var html = await r.text();
+    var hasVendor = html.indexOf('vendor/supabase-js') !== -1;
+    var hasJsdelivr = html.indexOf('jsdelivr') !== -1;
+    var ver = (html.match(/app\.js\?v=([0-9a-z]+)/) || [])[1] || '未知';
+    log('A. 首页版本: ' + ver + '；引用本地库=' + hasVendor + '，引用CDN=' + hasJsdelivr);
+  } catch(e){ log('A. 获取首页失败: ' + e.message); }
+
+  // B: 用求职网站同源的本地库跑查询
+  try {
+    await new Promise(function(resolve, reject){
+      var s = document.createElement('script');
+      s.src = 'https://rutie1.github.io/job-hunt/vendor/supabase-js-2.117.2.min.js?t=' + Date.now();
+      s.onload = resolve; s.onerror = function(){ reject(new Error('脚本加载失败')); };
+      document.head.appendChild(s);
+    });
+    if (typeof window.supabase === 'undefined') {
+      log('B. 本地库未加载');
+    } else {
+      var sb = window.supabase.createClient(
+        'https://arvpykrfraabwbnwlgje.supabase.co',
+        'sb_publishable_TjINRMrM7lD8E-BIcaOlRg_-gJznHwL');
+      var res = await sb.from('jobs').select('*').eq('is_active', true)
+        .order('posted_at', { ascending: false, nullsFirst: false })
+        .order('discovered_at', { ascending: false }).limit(500);
+      log('B. 本地库查询: error=' + JSON.stringify(res.error) + ', 行数=' + (res.data ? res.data.length : 'null'));
+    }
+  } catch(e){ log('B. 失败: ' + e.name + ': ' + e.message); }
+  log('完成');
+})();
+</script>
+</body></html>
