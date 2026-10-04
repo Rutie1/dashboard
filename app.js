@@ -155,13 +155,22 @@ async function loadTrips() {
     var rows = r.data || [], t = todayStr();
     box.innerHTML = rows.length ? rows.map(function (x) {
       var d = daysUntil(x.start_date);
-      var cd = d === null ? '' : (d > 0 ? '<div class="countdown">还有 ' + d + ' 天</div>' : (d === 0 ? '<div class="countdown">今天出发</div>' : '<div class="meta">进行中</div>'));
-      return '<div class="card"><h3>' + esc(x.title) + '</h3>' + cd +
+      var cd = d === null ? '' : (d > 0 ? '<div class="countdown">' + d + ' <small>天后</small></div>' : (d === 0 ? '<div class="countdown">今天出发</div>' : '<div class="meta">进行中</div>'));
+      var notesHtml = x.notes ? '<div class="trip-detail" hidden>' + esc(x.notes).replace(/\n/g, '<br>') + '</div>' : '';
+      var toggleBtn = x.notes ? '<button class="mini-btn trip-toggle">展开详情</button>' : '';
+      return '<div class="card trip-card"><h3>' + esc(x.title) + '</h3>' + cd +
         '<div class="meta">' + esc(fmtDate(x.start_date)) + ' → ' + esc(fmtDate(x.end_date)) + '</div>' +
-        (x.notes ? '<div class="meta">' + esc(x.notes) + '</div>' : '') +
-        (x.link_url ? '<div><a class="link-btn" href="' + esc(x.link_url) + '" target="_blank" rel="noopener">' + esc(x.link_label || '打开') + '</a></div>' : '') +
-        '</div>';
+        notesHtml + '<div style="margin-top:8px;">' + toggleBtn +
+        (x.link_url ? ' <a class="link-btn" href="' + esc(x.link_url) + '" target="_blank" rel="noopener">' + esc(x.link_label || '打开') + '</a>' : '') + '</div></div>';
     }).join('') : '<div class="empty">还没有行程。</div>';
+    box.querySelectorAll('.trip-toggle').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var detail = b.closest('.trip-card').querySelector('.trip-detail');
+        var open = detail.hidden;
+        detail.hidden = !open;
+        b.textContent = open ? '收起详情' : '展开详情';
+      });
+    });
   } catch (e) { box.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
 }
 document.getElementById('trips-refresh').addEventListener('click', loadTrips);
