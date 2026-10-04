@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>个人助手</title>
+<link rel="stylesheet" href="styles.css?v=20261004a">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- 未登录 -->
+<div id="login-view" class="login-wrap" hidden>
+  <div class="login-card">
+    <h1>个人助手</h1>
+    <p class="hint">私人页面，仅本人登录后可见。</p>
+    <input id="login-email" type="email" placeholder="邮箱" autocomplete="username">
+    <input id="login-pass" type="password" placeholder="密码" autocomplete="current-password">
+    <button id="login-btn" class="btn primary">登录</button>
+    <p id="login-err" class="err" hidden></p>
+  </div>
+</div>
+
+<!-- 已登录 -->
+<div id="app-view" hidden>
+  <header class="topbar">
+    <div>
+      <h1>个人助手</h1>
+      <p class="subtitle" id="today-date"></p>
+    </div>
+    <button id="logout-btn" class="btn small">退出</button>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="tab-today" class="active">今日</button>
+    <button data-tab="tab-trips">行程</button>
+    <button data-tab="tab-todos">待办</button>
+    <button data-tab="tab-health">健康</button>
+    <button data-tab="tab-market">市场</button>
+    <button data-tab="tab-links">链接</button>
+  </nav>
+
+  <main id="app">
+    <section id="tab-today" class="tab-panel active">
+      <div id="today-box"></div>
+    </section>
+
+    <section id="tab-trips" class="tab-panel">
+      <div class="toolbar"><button id="trips-refresh" class="btn small">刷新</button></div>
+      <div id="trips-list" class="cards"></div>
+    </section>
+
+    <section id="tab-todos" class="tab-panel">
+      <form id="todo-form" class="form-card">
+        <h3>新增待办</h3>
+        <input name="title" placeholder="要做什么 *" required>
+        <input name="due_date" type="date" aria-label="截止日期">
+        <button type="submit" class="btn primary">添加</button>
+      </form>
+      <div class="toolbar"><button id="todos-refresh" class="btn small">刷新</button></div>
+      <div id="todos-list"></div>
+    </section>
+
+    <section id="tab-health" class="tab-panel">
+      <form id="health-form" class="form-card">
+        <h3>记录一下</h3>
+        <div class="row">
+          <select name="kind" aria-label="类型">
+            <option value="weight">体重</option>
+            <option value="workout">运动</option>
+            <option value="meal">饮食</option>
+            <option value="other">其他</option>
+          </select>
+          <input name="log_date" type="date" id="health-date" aria-label="日期">
+        </div>
+        <input name="value_text" placeholder="内容，比如：72.5kg / 跑步5km / 买菜" required>
+        <button type="submit" class="btn primary">记录</button>
+      </form>
+      <div class="toolbar"><button id="health-refresh" class="btn small">刷新</button></div>
+      <div id="health-list"></div>
+    </section>
+
+    <section id="tab-market" class="tab-panel">
+      <p class="hint">每天 7:50 自动更新，和邮件版内容一致。</p>
+      <div class="toolbar"><button id="market-refresh" class="btn small">刷新</button></div>
+      <div id="market-list" class="cards"></div>
+    </section>
+
+    <section id="tab-links" class="tab-panel">
+      <div class="toolbar"><button id="links-refresh" class="btn small">刷新</button></div>
+      <div id="links-list"></div>
+    </section>
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+<script src="app.js?v=20261004a"></script>
+</body>
+</html>
