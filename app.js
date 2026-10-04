@@ -1,4 +1,4 @@
-/* 个人助手 - 私人驾驶舱（Supabase 登录后可见） */
+/* 个人助手 v2 - 私人驾驶舱（Supabase 登录后可见） */
 var SUPABASE_URL = 'https://arvpykrfraabwbnwlgje.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_TjINRMrM7lD8E-BIcaOlRg_-gJznHwL'; // 公开钥匙，数据靠登录 + RLS 保护
 var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -51,10 +51,13 @@ async function enterApp(uid) {
   document.getElementById('login-view').hidden = true;
   document.getElementById('app-view').hidden = false;
   var d = new Date();
+  var hr = d.getHours();
+  var greet = hr < 6 ? '夜深了' : hr < 12 ? '早上好' : hr < 14 ? '中午好' : hr < 18 ? '下午好' : '晚上好';
+  document.getElementById('greeting').innerHTML = greet + ' <span class="gold">·</span>';
   document.getElementById('today-date').textContent =
-    d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 星期' + '日一二三四五六'[d.getDay()];
+    d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 · 星期' + '日一二三四五六'[d.getDay()];
   document.getElementById('health-date').value = todayStr();
-  loadToday(); loadTrips(); loadTodos(); loadHealth(); loadMarket(); loadLinks();
+  loadToday(); loadTrips(); loadTodos(); loadHealth(); loadMarket(); loadMail(); loadLinks();
 }
 document.getElementById('login-btn').addEventListener('click', async function () {
   var email = document.getElementById('login-email').value.trim();
@@ -125,6 +128,16 @@ async function loadToday() {
       mh.data.map(function (x) { return '<div style="margin-top:8px;"><b>' + esc(x.title) + '</b></div>'; }).join('')
       : '<div class="empty">暂无新闻，每天 7:50 自动更新后显示在这里。</div>';
     html += '</div>';
+    // 邮箱动态：最新 3 条
+    var ml = await sb.from('dash_mail').select('*').eq('user_id', UID).order('mail_date', { ascending: false }).order('sort', { ascending: true }).limit(3);
+    if (!ml.error && ml.data.length) {
+      html += '<div class="today-sec"><h2>邮箱</h2>' +
+        ml.data.map(function (x) {
+          return '<div style="margin-top:8px;"><b>' + esc(x.subject) + '</b>' +
+            (x.summary ? '<div class="meta">' + esc(x.summary) + '</div>' : '') + '</div>';
+        }).join('') +
+        '<div style="margin-top:10px;"><a href="javascript:void(0)" onclick="switchTab(\'tab-mail\')" style="color:var(--gold);font-size:13px;text-decoration:none;">查看全部 →</a></div></div>';
+    }
     box.innerHTML = html;
     box.querySelectorAll('[data-todo-toggle]').forEach(function (c) {
       c.addEventListener('change', function () { toggleTodo(c.dataset.todoToggle, true); });
@@ -292,6 +305,33 @@ async function loadLinks() {
   } catch (e) { box.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
 }
 document.getElementById('links-refresh').addEventListener('click', loadLinks);
+
+/* ---------- 邮箱 ---------- */
+async function loadMail() {
+  var box = document.getElementById('mail-list');
+  box.innerHTML = loadingHTML();
+  try {
+    var r = await sb.from('dash_mail').select('*').eq('user_id', UID).order('mail_date', { ascending: false }).order('sort', { ascending: true }).limit(60);
+    if (r.error) throw r.error;
+    var rows = r.data || [];
+    if (!rows.length) { box.innerHTML = '<div class="empty">还没有邮件摘要。每天自动扫描后显示在这里。</div>'; return; }
+    var byDate = {}, order = [];
+    rows.forEach(function (x) {
+      if (!byDate[x.mail_date]) { byDate[x.mail_date] = []; order.push(x.mail_date); }
+      byDate[x.mail_date].push(x);
+    });
+    box.innerHTML = order.map(function (dt) {
+      return '<div class="news-date">' + esc(fmtDate(dt)) + '</div>' +
+        byDate[dt].map(function (x) {
+          return '<div class="card mail-row"><div class="grow">' +
+            '<div class="mail-subject">' + esc(x.subject) + '</div>' +
+            (x.sender ? '<div class="mail-meta">来自：' + esc(x.sender) + '</div>' : '') +
+            (x.summary ? '<p>' + esc(x.summary) + '</p>' : '') + '</div></div>';
+        }).join('');
+    }).join('');
+  } catch (e) { box.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
+}
+document.getElementById('mail-refresh').addEventListener('click', loadMail);
 
 /* ---------- 启动 ---------- */
 checkSession();
