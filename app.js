@@ -4,7 +4,7 @@ var SUPABASE_KEY = 'sb_publishable_TjINRMrM7lD8E-BIcaOlRg_-gJznHwL'; // 公开�
 var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var UID = null;
 
-var KIND_LABEL = { weight: '体重', workout: '运动', meal: '饮食', other: '其他' };
+var KIND_LABEL = { weight: '体重', workout: '运动', meal: '饮食', other: '其他', steps: '步数', sleep: '睡眠', heartrate: '心率' };
 
 function esc(s) {
   return String(s == null ? '' : s)
