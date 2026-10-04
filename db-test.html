@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>数据库连接测试</title>
+<style>body{font-family:system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 16px}pre{background:#f4f4f5;padding:16px;border-radius:8px;white-space:pre-wrap;word-break:break-all}</style>
+</head><body>
+<h2>数据库连接测试（临时诊断页）</h2>
+<pre id="out">测试中…</pre>
+<script>
+(async function(){
+  var out = document.getElementById('out');
+  out.textContent = '';
+  function log(s){ out.textContent += s + "\n"; }
+  var URL = 'https://arvpykrfraabwbnwlgje.supabase.co/rest/v1/jobs?select=id&is_active=eq.true&limit=5';
+  var KEY = 'sb_publishable_TjINRMrM7lD8E-BIcaOlRg_-gJznHwL';
+  log('1. 浏览器: ' + navigator.userAgent.slice(0, 80));
+  log('2. 目标: ' + URL);
+  try {
+    var t0 = Date.now();
+    var r = await fetch(URL, {headers: {'apikey': KEY}});
+    log('3. HTTP 状态: ' + r.status + '（耗时 ' + (Date.now()-t0) + 'ms）');
+    var txt = await r.text();
+    log('4. 返回长度: ' + txt.length + ' 字符');
+    log('5. 内容前 200 字符: ' + txt.slice(0, 200));
+    try {
+      var j = JSON.parse(txt);
+      log('6. 解析行数: ' + (Array.isArray(j) ? j.length : '不是数组'));
+    } catch(e){ log('6. JSON 解析失败: ' + e.message); }
+  } catch(e){
+    log('3. 请求失败: ' + e.name + ': ' + e.message);
+  }
+  log('7. 测试完成');
+})();
+</script>
+</body></html>
