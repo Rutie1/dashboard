@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>个人助手</title>
-<link rel="stylesheet" href="styles.css?v=20261004a">
+<link rel="stylesheet" href="styles.css?v=20261004b">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -25,7 +25,7 @@
 <div id="app-view" hidden>
   <header class="topbar">
     <div>
-      <h1>个人助手</h1>
+      <p class="greeting" id="greeting"></p>
       <p class="subtitle" id="today-date"></p>
     </div>
     <button id="logout-btn" class="btn small">退出</button>
@@ -37,6 +37,7 @@
     <button data-tab="tab-todos">待办</button>
     <button data-tab="tab-health">健康</button>
     <button data-tab="tab-market">市场</button>
+    <button data-tab="tab-mail">邮箱</button>
     <button data-tab="tab-links">链接</button>
   </nav>
 
@@ -86,6 +87,12 @@
       <div id="market-list" class="cards"></div>
     </section>
 
+    <section id="tab-mail" class="tab-panel">
+      <p class="hint">每天自动扫描 Gmail，重要的事列在这里。只读摘要，不碰正文细节。</p>
+      <div class="toolbar"><button id="mail-refresh" class="btn small">刷新</button></div>
+      <div id="mail-list" class="cards"></div>
+    </section>
+
     <section id="tab-links" class="tab-panel">
       <div class="toolbar"><button id="links-refresh" class="btn small">刷新</button></div>
       <div id="links-list"></div>
@@ -94,6 +101,6 @@
 </div>
 
 <div id="toast" class="toast"></div>
-<script src="app.js?v=20261004a"></script>
+<script src="app.js?v=20261004b"></script>
 </body>
 </html>
