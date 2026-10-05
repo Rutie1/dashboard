@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>铁胖的个人空间</title>
-<link rel="icon" href="icon.svg?v=20261004o" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon-192.png?v=20261004o">
-<link rel="manifest" href="manifest.json?v=20261004o">
+<link rel="icon" href="icon.svg?v=20261004p" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png?v=20261004p">
+<link rel="manifest" href="manifest.json?v=20261004p">
 <meta name="theme-color" content="#F6F1E7">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,12 +15,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261004o">
+<link rel="stylesheet" href="styles.css?v=20261004p">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('sw.js?v=20261004o').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=20261004p').catch(function(){});
   });
 }
 </script>
@@ -30,7 +30,7 @@ if ('serviceWorker' in navigator) {
 <!-- 未登录 -->
 <div id="login-view" class="login-wrap" hidden>
   <div class="login-card">
-    <img src="icon.svg?v=20261004o" alt="" class="login-icon">
+    <img src="icon.svg?v=20261004p" alt="" class="login-icon">
     <h1>铁胖的个人空间</h1>
     <p class="hint">私人空间，仅本人登录后可见。</p>
     <input id="login-email" type="email" placeholder="邮箱" autocomplete="username">
@@ -44,7 +44,7 @@ if ('serviceWorker' in navigator) {
 <div id="app-view" hidden>
   <header class="topbar">
     <div class="brand">
-      <img src="icon.svg?v=20261004o" alt="" class="brand-icon">
+      <img src="icon.svg?v=20261004p" alt="" class="brand-icon">
       <span class="brand-name">铁胖的个人空间</span>
     </div>
     <button id="logout-btn" class="btn small">退出</button>
@@ -130,6 +130,6 @@ if ('serviceWorker' in navigator) {
 </div>
 
 <div id="toast" class="toast"></div>
-<script src="app.js?v=20261004o"></script>
+<script src="app.js?v=20261004p"></script>
 </body>
 </html>

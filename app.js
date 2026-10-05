@@ -303,6 +303,50 @@ async function loadTrips() {
     });
   } catch (e) { box.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
 }
+/* ---------- 待办攻略弹窗（NIW / 多国移民等） ---------- */
+var TODO_GUIDES = [
+  { key: 'niw', file: 'niw-guide.html', label: 'NIW 攻略' },
+  { key: '移民', file: 'immigration-guide.html', label: '移民攻略' }
+];
+function todoGuideFor(title) {
+  var low = (title || '').toLowerCase();
+  for (var i = 0; i < TODO_GUIDES.length; i++) {
+    if (low.indexOf(TODO_GUIDES[i].key) !== -1) return TODO_GUIDES[i];
+  }
+  return null;
+}
+function openGuide(file, label) {
+  var ov = document.getElementById('guide-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'guide-overlay';
+    ov.className = 'modal-overlay';
+    ov.innerHTML = '<div class="modal-card"><div class="modal-head"><span class="modal-title" id="guide-title"></span>' +
+      '<button class="mini-btn" id="guide-close">关闭</button></div><div id="guide-body"></div></div>';
+    document.body.appendChild(ov);
+    document.getElementById('guide-close').addEventListener('click', closeGuide);
+    ov.addEventListener('click', function (e) { if (e.target === ov) closeGuide(); });
+  }
+  document.getElementById('guide-title').textContent = label;
+  document.getElementById('guide-body').innerHTML = '<div class="empty">加载中…</div>';
+  ov.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  fetch(file).then(function (r) {
+    if (!r.ok) throw new Error('not found');
+    return r.text();
+  }).then(function (html) {
+    document.getElementById('guide-body').innerHTML = html;
+    document.querySelector('.modal-card').scrollTop = 0;
+  }).catch(function () {
+    document.getElementById('guide-body').innerHTML = '<div class="empty">攻略还在准备中，过一会儿再点开看看。</div>';
+  });
+}
+function closeGuide() {
+  var ov = document.getElementById('guide-overlay');
+  if (ov) ov.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
 /* ---------- 待办（含行程） ---------- */
 async function loadTodos() {
   var box = document.getElementById('todos-list');
@@ -319,14 +363,19 @@ async function loadTodos() {
     var hiddenN = rows.length - visible.length;
     box.innerHTML = visible.length ? visible.map(function (x) {
       var over = !x.done && x.due_date && x.due_date < t;
+      var g = todoGuideFor(x.title);
       return '<div class="todo-row' + (x.done ? ' done' : '') + '">' +
         '<input type="checkbox" data-todo-toggle="' + esc(x.id) + '"' + (x.done ? ' checked' : '') + '>' +
         '<div class="grow"><div class="t-title">' + esc(x.title) + '</div>' +
         (x.due_date ? '<span class="tag' + (over ? ' overdue' : ' tone-todos') + '">' + (over ? '已逾期 · ' : '') + esc(fmtDate(x.due_date)) + '</span>' : '') + '</div>' +
+        (g ? '<button class="mini-btn guide-btn" data-guide-file="' + esc(g.file) + '" data-guide-label="' + esc(g.label) + '">' + esc(g.label) + '</button>' : '') +
         '<button class="mini-btn" data-dt="' + esc(x.id) + '">已阅</button>' +
         '<button class="mini-btn" data-todo-del="' + esc(x.id) + '">删除</button></div>';
     }).join('') + (hiddenN ? dismissFoot('todos', hiddenN) : '')
       : '<div class="empty">' + (rows.length ? '都处理完啦，喝杯水吧。' : '没有待办，加一条吧。') + '</div>' + (hiddenN ? dismissFoot('todos', hiddenN) : '');
+    box.querySelectorAll('[data-guide-file]').forEach(function (b) {
+      b.addEventListener('click', function () { openGuide(b.dataset.guideFile, b.dataset.guideLabel); });
+    });
     box.querySelectorAll('[data-dt]').forEach(function (b) {
       b.addEventListener('click', function () { dismissItem('todos', b.dataset.dt, todoSig[b.dataset.dt]); loadTodos(); loadToday(); });
     });
