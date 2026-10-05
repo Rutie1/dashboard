@@ -42,6 +42,36 @@ function roundNums(s) {
   });
 }
 
+/* ---------- 已阅：本地隐藏，看过的不再打扰 ---------- */
+var DISMISS_KEY = 'dz_dismissed_v1';
+var mailSig = {}, todoSig = {};
+function getDismissed() {
+  try { return JSON.parse(localStorage.getItem(DISMISS_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+function saveDismissed(d) { try { localStorage.setItem(DISMISS_KEY, JSON.stringify(d)); } catch (e) {} }
+/* 签名：内容变了就视为新信息，重新出现 */
+function sigMail(x) { return (x.mail_date || '') + '|' + (x.subject || ''); }
+function sigTodo(x) { return (x.title || '') + '|' + (x.due_date || '') + '|' + (x.done ? '1' : '0'); }
+function isDismissed(kind, id, sig) {
+  var d = getDismissed();
+  return !!(d[kind] && d[kind][id] === sig);
+}
+function dismissItem(kind, id, sig) {
+  var d = getDismissed();
+  d[kind] = d[kind] || {};
+  d[kind][id] = sig;
+  saveDismissed(d);
+}
+function undismissKind(kind) {
+  var d = getDismissed();
+  delete d[kind];
+  saveDismissed(d);
+}
+function dismissFoot(kind, n) {
+  return '<div class="dismiss-foot">已隐藏 ' + n + ' 条已阅 · <a href="javascript:void(0)" id="undismiss-' + kind + '">恢复显示</a></div>';
+}
+
 /* ---------- 登录 ---------- */
 async function checkSession() {
   var r = await sb.auth.getSession();
@@ -135,18 +165,25 @@ async function loadToday() {
         mails = rs[3].data || [], healths = rs[4].data || [], links = rs[5].data || [];
     if (rs[0].error) throw rs[0].error;
 
+    /* 已阅过滤：只看还没看过的 */
+    todoSig = {}; mailSig = {};
+    todos.forEach(function (x) { todoSig[x.id] = sigTodo(x); });
+    mails.forEach(function (x) { mailSig[x.id] = sigMail(x); });
+    var visTodos = todos.filter(function (x) { return !isDismissed('todos', x.id, todoSig[x.id]); });
+    var visMails = mails.filter(function (x) { return !isDismissed('mail', x.id, mailSig[x.id]); });
+
     /* --- hero 焦点 --- */
     var focus = '', trip = trips[0] || null, tripDays = trip ? daysUntil(trip.start_date) : null;
-    var overdue = todos.filter(function (x) { return x.due_date && x.due_date < t; });
-    var dueToday = todos.filter(function (x) { return x.due_date === t; });
+    var overdue = visTodos.filter(function (x) { return x.due_date && x.due_date < t; });
+    var dueToday = visTodos.filter(function (x) { return x.due_date === t; });
     if (trip && tripDays !== null && tripDays >= 0 && tripDays <= 30) {
       focus = esc(trip.title) + '还有 ' + tripDays + ' 天';
     } else if (overdue.length) {
       focus = '有 ' + overdue.length + ' 件待办已逾期，先清掉吧';
     } else if (dueToday.length) {
       focus = '今天还有 ' + dueToday.length + ' 件事要做';
-    } else if (todos.length) {
-      focus = '还有 ' + todos.length + ' 件待办，加油';
+    } else if (visTodos.length) {
+      focus = '还有 ' + visTodos.length + ' 件待办，加油';
     } else {
       focus = '今天暂无安排，好好享受生活';
     }
@@ -157,14 +194,14 @@ async function loadToday() {
     var steps = healths.filter(function (x) { return x.kind === 'steps'; })[0];
     var sleep = healths.filter(function (x) { return x.kind === 'sleep'; })[0];
     var stats = '';
-    stats += statCard('待办', String(todos.length),
-      overdue.length ? overdue.length + ' 件已逾期' : (todos.length ? '继续保持' : '全部搞定'),
+    stats += statCard('待办', String(visTodos.length),
+      overdue.length ? overdue.length + ' 件已逾期' : (visTodos.length ? '继续保持' : '全部搞定'),
       overdue.length ? 'bad' : 'c-todos');
     stats += statCard('步数', steps ? esc(roundNums(steps.value_text)) : '—',
       steps ? fmtDate(steps.log_date) : '暂无数据', 'c-health');
     stats += statCard('睡眠', sleep ? esc(roundNums(sleep.value_text)) : '—',
       sleep ? fmtDate(sleep.log_date) : '暂无数据', 'c-health');
-    stats += statCard('邮件', String(mails.length), mails.length ? '今日摘要' : '暂无', 'c-mail');
+    stats += statCard('邮件', String(visMails.length), visMails.length ? '待看摘要' : '都看完了', 'c-mail');
     stats += statCard('行程', trip ? (tripDays > 0 ? tripDays + '天' : (tripDays === 0 ? '今天' : '进行中')) : '—',
       trip ? String(trip.title).slice(0, 10) : '暂无计划', 'c-trips');
     document.getElementById('stat-strip').innerHTML = stats;
@@ -178,12 +215,12 @@ async function loadToday() {
         esc(fmtDate(trip.start_date)) + ' → ' + esc(fmtDate(trip.end_date)))
       : '<div class="bento-empty">还没有行程，来计划一次远方吧。</div>');
     // 待办
-    bento += bentoCard('todos', '待办', 'tab-todos', todos.length ?
-      todos.slice(0, 3).map(function (x) {
+    bento += bentoCard('todos', '待办', 'tab-todos', visTodos.length ?
+      visTodos.slice(0, 3).map(function (x) {
         var over = x.due_date && x.due_date < t;
         return bentoRow(esc(x.title),
           (over ? '<span style="color:var(--red);font-weight:700;">已逾期 · </span>' : '') + (x.due_date ? esc(fmtDate(x.due_date)) : '无截止'));
-      }).join('') + (todos.length > 3 ? '<div class="bento-empty">还有 ' + (todos.length - 3) + ' 件…</div>' : '')
+      }).join('') + (visTodos.length > 3 ? '<div class="bento-empty">还有 ' + (visTodos.length - 3) + ' 件…</div>' : '')
       : '<div class="bento-empty">今天没有待办，挺好。</div>');
     // 健康
     var weight = healths.filter(function (x) { return x.kind === 'weight'; })[0];
@@ -200,8 +237,8 @@ async function loadToday() {
       }).join('')
       : '<div class="bento-empty">暂无新闻，每天 7:50 自动更新。</div>', 'wide');
     // 邮箱
-    bento += bentoCard('mail', '邮箱', 'tab-mail', mails.length ?
-      mails.slice(0, 3).map(function (x) {
+    bento += bentoCard('mail', '邮箱', 'tab-mail', visMails.length ?
+      visMails.slice(0, 3).map(function (x) {
         return bentoRow('<b>' + esc(x.subject) + '</b>', x.sender ? '来自：' + esc(x.sender) : '');
       }).join('')
       : '<div class="bento-empty">还没有邮件摘要。</div>');
@@ -277,14 +314,27 @@ async function loadTodos() {
     var r = await sb.from('dash_todos').select('*').eq('user_id', UID).order('done', { ascending: true }).order('due_date', { ascending: true, nullsFirst: false });
     if (r.error) throw r.error;
     var rows = r.data || [], t = todayStr();
-    box.innerHTML = rows.length ? rows.map(function (x) {
+    todoSig = {};
+    var visible = rows.filter(function (x) {
+      var s = sigTodo(x); todoSig[x.id] = s;
+      return !isDismissed('todos', x.id, s);
+    });
+    var hiddenN = rows.length - visible.length;
+    box.innerHTML = visible.length ? visible.map(function (x) {
       var over = !x.done && x.due_date && x.due_date < t;
       return '<div class="todo-row' + (x.done ? ' done' : '') + '">' +
         '<input type="checkbox" data-todo-toggle="' + esc(x.id) + '"' + (x.done ? ' checked' : '') + '>' +
         '<div class="grow"><div class="t-title">' + esc(x.title) + '</div>' +
         (x.due_date ? '<span class="tag' + (over ? ' overdue' : ' tone-todos') + '">' + (over ? '已逾期 · ' : '') + esc(fmtDate(x.due_date)) + '</span>' : '') + '</div>' +
+        '<button class="mini-btn" data-dt="' + esc(x.id) + '">已阅</button>' +
         '<button class="mini-btn" data-todo-del="' + esc(x.id) + '">删除</button></div>';
-    }).join('') : '<div class="empty">没有待办，加一条吧。</div>';
+    }).join('') + (hiddenN ? dismissFoot('todos', hiddenN) : '')
+      : '<div class="empty">' + (rows.length ? '都处理完啦，喝杯水吧。' : '没有待办，加一条吧。') + '</div>' + (hiddenN ? dismissFoot('todos', hiddenN) : '');
+    box.querySelectorAll('[data-dt]').forEach(function (b) {
+      b.addEventListener('click', function () { dismissItem('todos', b.dataset.dt, todoSig[b.dataset.dt]); loadTodos(); loadToday(); });
+    });
+    var unT = document.getElementById('undismiss-todos');
+    if (unT) unT.addEventListener('click', function () { undismissKind('todos'); loadTodos(); loadToday(); });
     box.querySelectorAll('[data-todo-toggle]').forEach(function (c) {
       c.addEventListener('change', function () { toggleTodo(c.dataset.todoToggle, c.checked); });
     });
@@ -421,24 +471,41 @@ async function loadMail() {
     var r = await sb.from('dash_mail').select('*').eq('user_id', UID).order('mail_date', { ascending: false }).order('sort', { ascending: true }).limit(60);
     if (r.error) throw r.error;
     var rows = r.data || [];
-    if (!rows.length) { box.innerHTML = '<div class="empty">还没有邮件摘要。每天自动扫描后显示在这里。</div>'; return; }
-    var byDate = {}, order = [];
-    rows.forEach(function (x) {
-      if (!byDate[x.mail_date]) { byDate[x.mail_date] = []; order.push(x.mail_date); }
-      byDate[x.mail_date].push(x);
+    mailSig = {};
+    var visible = rows.filter(function (x) {
+      var s = sigMail(x); mailSig[x.id] = s;
+      return !isDismissed('mail', x.id, s);
     });
-    box.innerHTML = order.map(function (dt) {
-      return '<div class="news-date">' + esc(fmtDate(dt)) + '</div>' +
-        byDate[dt].map(function (x) {
-          var gmailUrl = x.gmail_id ? 'https://mail.google.com/mail/u/0/#all/' + esc(x.gmail_id) : '';
-          return '<div class="card mail-row"><div class="grow">' +
-            '<div class="mail-subject">' + esc(x.subject) + '</div>' +
-            (x.sender ? '<div class="mail-meta">来自：' + esc(x.sender) + '</div>' : '') +
-            (x.summary ? '<p>' + esc(x.summary) + '</p>' : '') +
-            (gmailUrl ? '<div style="margin-top:8px;"><a class="mail-link" href="' + gmailUrl + '" target="_blank" rel="noopener">查看原邮件 →</a></div>' : '') +
-            '</div></div>';
-        }).join('');
-    }).join('');
+    var hiddenN = rows.length - visible.length;
+    if (!visible.length) {
+      box.innerHTML = '<div class="empty">' + (rows.length ? '邮件都看完啦。' : '还没有邮件摘要。每天自动扫描后显示在这里。') + '</div>' +
+        (hiddenN ? dismissFoot('mail', hiddenN) : '');
+    } else {
+      var byDate = {}, order = [];
+      visible.forEach(function (x) {
+        if (!byDate[x.mail_date]) { byDate[x.mail_date] = []; order.push(x.mail_date); }
+        byDate[x.mail_date].push(x);
+      });
+      box.innerHTML = order.map(function (dt) {
+        return '<div class="news-date">' + esc(fmtDate(dt)) + '</div>' +
+          byDate[dt].map(function (x) {
+            var gmailUrl = x.gmail_id ? 'https://mail.google.com/mail/u/0/#all/' + esc(x.gmail_id) : '';
+            return '<div class="card mail-row"><div class="grow">' +
+              '<div class="mail-subject">' + esc(x.subject) + '</div>' +
+              (x.sender ? '<div class="mail-meta">来自：' + esc(x.sender) + '</div>' : '') +
+              (x.summary ? '<p>' + esc(x.summary) + '</p>' : '') +
+              '<div class="mail-actions">' +
+              (gmailUrl ? '<a class="mail-link" href="' + gmailUrl + '" target="_blank" rel="noopener">查看原邮件 →</a>' : '') +
+              '<button class="mini-btn" data-dm="' + esc(x.id) + '">已阅</button></div>' +
+              '</div></div>';
+          }).join('');
+      }).join('') + (hiddenN ? dismissFoot('mail', hiddenN) : '');
+    }
+    box.querySelectorAll('[data-dm]').forEach(function (b) {
+      b.addEventListener('click', function () { dismissItem('mail', b.dataset.dm, mailSig[b.dataset.dm]); loadMail(); loadToday(); });
+    });
+    var unM = document.getElementById('undismiss-mail');
+    if (unM) unM.addEventListener('click', function () { undismissKind('mail'); loadMail(); loadToday(); });
   } catch (e) { box.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
 }
 document.getElementById('mail-refresh').addEventListener('click', loadMail);

@@ -245,6 +245,9 @@ h3 { font-size: 15px; margin: 0 0 6px; font-weight: 600; }
 .mail-subject { font-size: 15px; font-weight: 600; }
 .mail-meta { color: var(--ink-3); font-size: 12px; margin-top: 4px; }
 .mail-link { color: var(--c-mail); font-size: 13px; text-decoration: none; font-weight: 600; }
+.mail-actions { display: flex; gap: 14px; align-items: center; margin-top: 8px; }
+.dismiss-foot { text-align: center; color: var(--ink-3); font-size: 13px; margin: 16px 0 6px; }
+.dismiss-foot a { color: var(--ink-2); font-weight: 600; }
 
 /* ---------- 链接 ---------- */
 .link-group { margin-bottom: 20px; }
