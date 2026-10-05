@@ -1,4 +1,4 @@
-/* 个人助手 v2 - 私人驾驶舱（Supabase 登录后可见） */
+/* 铁片儿的个人空间 v3 - 私人驾驶舱（Supabase 登录后可见） */
 var SUPABASE_URL = 'https://arvpykrfraabwbnwlgje.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_TjINRMrM7lD8E-BIcaOlRg_-gJznHwL'; // 公开钥匙，数据靠登录 + RLS 保护
 var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -57,7 +57,7 @@ async function enterApp(uid) {
   document.getElementById('today-date').textContent =
     d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 · 星期' + '日一二三四五六'[d.getDay()];
   document.getElementById('health-date').value = todayStr();
-  loadToday(); loadTrips(); loadTodos(); loadHealth(); loadMarket(); loadMail(); loadLinks();
+  loadToday(); loadTrips(); loadTodos(); loadHealth(); loadMarket(); loadMail(); loadLinks(); loadPhotoFlow();
 }
 document.getElementById('login-btn').addEventListener('click', async function () {
   var email = document.getElementById('login-email').value.trim();
@@ -349,6 +349,24 @@ async function loadMail() {
   } catch (e) { box.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
 }
 document.getElementById('mail-refresh').addEventListener('click', loadMail);
+
+/* ---------- 流动相框 ---------- */
+var PHOTOS = ['couple-park.jpg', 'niagara-family.jpg', 'beach-couple.jpg', 'cat-calico.jpg', 'cat-tabby.jpg', 'cat-gray.jpg', 'family-everglades.jpg'];
+async function loadPhotoFlow() {
+  var wrap = document.getElementById('photo-flow');
+  var track = document.getElementById('photo-track');
+  try {
+    var urls = [];
+    for (var i = 0; i < PHOTOS.length; i++) {
+      var r = await sb.storage.from('private-photos').createSignedUrl(PHOTOS[i], 86400 * 7);
+      if (r.data && r.data.signedUrl) urls.push(r.data.signedUrl);
+    }
+    if (!urls.length) return;
+    var imgs = urls.map(function (u) { return '<img src="' + u + '" alt="" loading="lazy">'; }).join('');
+    track.innerHTML = imgs + imgs; // 复制一份，无缝循环
+    wrap.hidden = false;
+  } catch (e) { /* 照片加载失败就安静地不显示 */ }
+}
 
 /* ---------- 启动 ---------- */
 checkSession();
