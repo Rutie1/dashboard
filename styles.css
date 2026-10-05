@@ -1,9 +1,8 @@
-/* 铁片儿的个人空间 v3 — 暗夜高级版 */
+/* 铁胖的个人空间 v4 — 暗夜氛围版 */
 * { box-sizing: border-box; }
 :root {
   --bg: #08080d;
-  --bg-glow: radial-gradient(1200px 500px at 50% -120px, rgba(212,169,92,.09), transparent 70%);
-  --surface: #121218;
+  --surface: rgba(18, 18, 26, 0.84);
   --surface-2: #17171f;
   --line: rgba(255,255,255,.07);
   --text: #eceaf2;
@@ -21,9 +20,30 @@ body {
   margin: 0; color: var(--text); line-height: 1.65;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   background: var(--bg);
-  background-image: var(--bg-glow);
-  background-attachment: fixed;
   min-height: 100vh;
+}
+/* 底层：城市夜景 */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -3;
+  background: url('bg-skyline.jpg?v=20261004g') center 20% / cover no-repeat;
+  opacity: .38;
+}
+/* 中层：渐变压暗，保证文字可读 */
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: -2;
+  background: linear-gradient(180deg, rgba(8,8,13,.62) 0%, rgba(8,8,13,.30) 32%, rgba(8,8,13,.80) 100%);
+}
+/* 呼吸光 */
+#bg-glow {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(900px 420px at 50% -80px, rgba(212,169,92,.12), transparent 70%);
+  animation: breathe 9s ease-in-out infinite;
+}
+@keyframes breathe { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+/* 胶片颗粒 */
+#bg-grain {
+  position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
 }
 h1 { font-size: 22px; margin: 0; font-weight: 700; letter-spacing: .02em; }
 h2 { font-size: 15px; margin: 0 0 10px; font-weight: 600; }
@@ -49,23 +69,8 @@ h3 { font-size: 15px; margin: 0 0 6px; font-weight: 600; }
 .brand-icon { width: 44px; height: 44px; border-radius: 12px; flex: 0 0 auto; box-shadow: 0 4px 16px rgba(0,0,0,.4); }
 .login-icon { width: 64px; height: 64px; border-radius: 16px; display: block; margin: 0 auto 14px; box-shadow: 0 8px 24px rgba(0,0,0,.45); }
 
-/* ---------- 流动相框 ---------- */
-.photo-flow {
-  overflow: hidden; border-radius: 20px; margin: 6px 0 18px;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
-}
-.photo-track {
-  display: flex; gap: 12px; width: max-content;
-  animation: photoFlow 70s linear infinite;
-}
-.photo-flow:hover .photo-track { animation-play-state: paused; }
-.photo-track img {
-  height: 170px; width: auto; border-radius: 14px; object-fit: cover; flex: 0 0 auto;
-  border: 1px solid var(--line);
-}
-@keyframes photoFlow { to { transform: translateX(-50%); } }
-@media (max-width: 560px) { .photo-track img { height: 130px; } }
+/* ---------- 卡片 ---------- */
+.card, .today-sec, .todo-row, .health-row, .mail-row, .form-card { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 
 /* ---------- 顶栏 ---------- */
 .topbar {
