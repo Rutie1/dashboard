@@ -4,20 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>铁胖的个人空间</title>
-<link rel="icon" href="icon.svg?v=20261004i" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon-192.png?v=20261004i">
-<link rel="manifest" href="manifest.json?v=20261004i">
-<meta name="theme-color" content="#0a0e1a">
+<link rel="icon" href="icon.svg?v=20261004j" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png?v=20261004j">
+<link rel="manifest" href="manifest.json?v=20261004j">
+<meta name="theme-color" content="#F6F1E7">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="铁胖空间">
-<link rel="stylesheet" href="styles.css?v=20261004i">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20261004j">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('sw.js?v=20261004i').catch(function(){});
+    navigator.serviceWorker.register('sw.js?v=20261004j').catch(function(){});
   });
 }
 </script>
@@ -27,7 +30,7 @@ if ('serviceWorker' in navigator) {
 <!-- 未登录 -->
 <div id="login-view" class="login-wrap" hidden>
   <div class="login-card">
-    <img src="icon.svg?v=20261004i" alt="" class="login-icon">
+    <img src="icon.svg?v=20261004j" alt="" class="login-icon">
     <h1>铁胖的个人空间</h1>
     <p class="hint">私人空间，仅本人登录后可见。</p>
     <input id="login-email" type="email" placeholder="邮箱" autocomplete="username">
@@ -41,11 +44,8 @@ if ('serviceWorker' in navigator) {
 <div id="app-view" hidden>
   <header class="topbar">
     <div class="brand">
-      <img src="icon.svg?v=20261004i" alt="" class="brand-icon">
-      <div>
-        <p class="greeting" id="greeting"></p>
-        <p class="subtitle" id="today-date"></p>
-      </div>
+      <img src="icon.svg?v=20261004j" alt="" class="brand-icon">
+      <span class="brand-name">铁胖的个人空间</span>
     </div>
     <button id="logout-btn" class="btn small">退出</button>
   </header>
@@ -62,15 +62,26 @@ if ('serviceWorker' in navigator) {
 
   <main id="app">
     <section id="tab-today" class="tab-panel active">
-      <div id="today-box"></div>
+      <div class="hero">
+        <p class="hero-greet"><span class="dot"></span><span id="greeting"></span></p>
+        <div class="hero-clock-row">
+          <span class="hero-clock num" id="hero-clock">--:--</span>
+          <span class="hero-date" id="today-date"></span>
+        </div>
+        <div><span class="hero-focus" id="hero-focus" hidden></span></div>
+      </div>
+      <div class="stat-strip" id="stat-strip"></div>
+      <div class="bento" id="today-bento"></div>
     </section>
 
     <section id="tab-trips" class="tab-panel">
+      <div class="sec-head sec-trips-s"><span class="dot"></span><h2>行程</h2><span class="sub">下一站去哪</span></div>
       <div class="toolbar"><button id="trips-refresh" class="btn small">刷新</button></div>
       <div id="trips-list" class="cards"></div>
     </section>
 
     <section id="tab-todos" class="tab-panel">
+      <div class="sec-head sec-todos-s"><span class="dot"></span><h2>待办</h2><span class="sub">一件一件来</span></div>
       <form id="todo-form" class="form-card">
         <h3>新增待办</h3>
         <input name="title" placeholder="要做什么 *" required>
@@ -82,6 +93,7 @@ if ('serviceWorker' in navigator) {
     </section>
 
     <section id="tab-health" class="tab-panel">
+      <div class="sec-head sec-health-s"><span class="dot"></span><h2>健康</h2><span class="sub">身体是本钱</span></div>
       <form id="health-form" class="form-card">
         <h3>记录一下</h3>
         <div class="row">
@@ -101,27 +113,27 @@ if ('serviceWorker' in navigator) {
     </section>
 
     <section id="tab-market" class="tab-panel">
-      <p class="hint">每天 7:50 自动更新，和邮件版内容一致。</p>
+      <div class="sec-head sec-market-s"><span class="dot"></span><h2>市场</h2><span class="sub">每天 7:50 自动更新</span></div>
       <div class="toolbar"><button id="market-refresh" class="btn small">刷新</button></div>
       <div id="market-list" class="cards"></div>
     </section>
 
     <section id="tab-mail" class="tab-panel">
+      <div class="sec-head sec-mail-s"><span class="dot"></span><h2>邮箱</h2><span class="sub">重要的事，别错过</span></div>
       <p class="hint">每天自动扫描 Gmail，重要的事列在这里。只读摘要，不碰正文细节。</p>
       <div class="toolbar"><button id="mail-refresh" class="btn small">刷新</button></div>
       <div id="mail-list" class="cards"></div>
     </section>
 
     <section id="tab-links" class="tab-panel">
+      <div class="sec-head sec-links-s"><span class="dot"></span><h2>链接</h2><span class="sub">常用直达</span></div>
       <div class="toolbar"><button id="links-refresh" class="btn small">刷新</button></div>
       <div id="links-list"></div>
     </section>
   </main>
 </div>
 
-<div id="bg-glow"></div>
-<div id="bg-grain"></div>
 <div id="toast" class="toast"></div>
-<script src="app.js?v=20261004i"></script>
+<script src="app.js?v=20261004j"></script>
 </body>
 </html>
