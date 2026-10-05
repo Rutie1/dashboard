@@ -35,6 +35,12 @@ function fmtDate(d) {
   return m ? (m[1] + '-' + m[2] + '-' + m[3]) : String(d).slice(0, 10);
 }
 function loadingHTML() { return '<div class="empty">加载中…</div>'; }
+/* 把数字里的小数四舍五入成整数，保留原单位文字 */
+function roundNums(s) {
+  return String(s == null ? '' : s).replace(/,/g, '').replace(/(\d+\.\d+)/g, function (m) {
+    return String(Math.round(parseFloat(m)));
+  });
+}
 
 /* ---------- 登录 ---------- */
 async function checkSession() {
@@ -64,7 +70,7 @@ async function enterApp(uid) {
   document.getElementById('health-date').value = todayStr();
   tickClock();
   setInterval(tickClock, 15000);
-  loadToday(); loadTrips(); loadTodos(); loadHealth(); loadMarket(); loadMail(); loadLinks();
+  loadToday(); loadTrips(); loadTodos(); loadHealth(); loadMarket(); loadMail(); loadLinks(); loadPhotos();
 }
 document.getElementById('login-btn').addEventListener('click', async function () {
   var email = document.getElementById('login-email').value.trim();
@@ -154,9 +160,9 @@ async function loadToday() {
     stats += statCard('待办', String(todos.length),
       overdue.length ? overdue.length + ' 件已逾期' : (todos.length ? '继续保持' : '全部搞定'),
       overdue.length ? 'bad' : 'c-todos');
-    stats += statCard('步数', steps ? esc(String(steps.value_text).replace(/[^\d.,]/g, '') || steps.value_text) : '—',
+    stats += statCard('步数', steps ? esc(roundNums(steps.value_text)) : '—',
       steps ? fmtDate(steps.log_date) : '暂无数据', 'c-health');
-    stats += statCard('睡眠', sleep ? esc(String(sleep.value_text).replace(/[^\d.]/g, '') || sleep.value_text) + 'h' : '—',
+    stats += statCard('睡眠', sleep ? esc(roundNums(sleep.value_text)) : '—',
       sleep ? fmtDate(sleep.log_date) : '暂无数据', 'c-health');
     stats += statCard('邮件', String(mails.length), mails.length ? '今日摘要' : '暂无', 'c-mail');
     stats += statCard('行程', trip ? (tripDays > 0 ? tripDays + '天' : (tripDays === 0 ? '今天' : '进行中')) : '—',
@@ -182,8 +188,8 @@ async function loadToday() {
     // 健康
     var weight = healths.filter(function (x) { return x.kind === 'weight'; })[0];
     var healthBody = '';
-    if (steps) healthBody += bentoRow('步数 <b class="num">' + esc(steps.value_text) + '</b>', esc(fmtDate(steps.log_date)));
-    if (sleep) healthBody += bentoRow('睡眠 <b class="num">' + esc(sleep.value_text) + '</b>', esc(fmtDate(sleep.log_date)));
+    if (steps) healthBody += bentoRow('步数 <b class="num">' + esc(roundNums(steps.value_text)) + '</b>', esc(fmtDate(steps.log_date)));
+    if (sleep) healthBody += bentoRow('睡眠 <b class="num">' + esc(roundNums(sleep.value_text)) + '</b>', esc(fmtDate(sleep.log_date)));
     if (weight) healthBody += bentoRow('体重 <b class="num">' + esc(weight.value_text) + '</b>', esc(fmtDate(weight.log_date)));
     bento += bentoCard('health', '健康', 'tab-health',
       healthBody || '<div class="bento-empty">还没有记录。</div>', '', 'narrow');
@@ -209,6 +215,28 @@ async function loadToday() {
   } catch (e) {
     document.getElementById('today-bento').innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>';
   }
+}
+
+/* ---------- 生活剪影：私密桶照片 ---------- */
+async function loadPhotos() {
+  try {
+    var files = ['couple-park.jpg', 'niagara-family.jpg', 'beach-couple.jpg', 'family-everglades.jpg'];
+    var urls = [];
+    for (var i = 0; i < files.length; i++) {
+      var r = await sb.storage.from('private-photos').createSignedUrl(files[i], 7200);
+      if (r.data && r.data.signedUrl) urls.push(r.data.signedUrl);
+    }
+    if (!urls.length) return;
+    var bento = document.getElementById('today-bento');
+    var card = document.createElement('div');
+    card.className = 'bento-card photo-card';
+    card.style.gridColumn = 'span 6';
+    card.innerHTML = '<div class="bento-head"><span class="dot" style="background:var(--brand);"></span><h3>生活剪影</h3></div>' +
+      '<div class="photo-grid">' + urls.map(function (u) {
+        return '<img src="' + u + '" alt="" loading="lazy">';
+      }).join('') + '</div>';
+    bento.appendChild(card);
+  } catch (e) { /* 照片加载失败就静默跳过，不打扰 */ }
 }
 
 /* ---------- 行程 ---------- */
