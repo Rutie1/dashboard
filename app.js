@@ -199,7 +199,7 @@ async function loadToday() {
       overdue.length ? 'bad' : 'c-todos');
     stats += statCard('步数', steps ? esc(roundNums(steps.value_text)) : '—',
       steps ? fmtDate(steps.log_date) : '暂无数据', 'c-health');
-    stats += statCard('睡眠', sleep ? esc(roundNums(sleep.value_text)) : '—',
+    stats += statCard('睡眠', sleep ? esc(sleep.value_text) : '—',
       sleep ? fmtDate(sleep.log_date) : '暂无数据', 'c-health');
     stats += statCard('邮件', String(visMails.length), visMails.length ? '待看摘要' : '都看完了', 'c-mail');
     stats += statCard('行程', trip ? (tripDays > 0 ? tripDays + '天' : (tripDays === 0 ? '今天' : '进行中')) : '—',
@@ -226,7 +226,7 @@ async function loadToday() {
     var weight = healths.filter(function (x) { return x.kind === 'weight'; })[0];
     var healthBody = '';
     if (steps) healthBody += bentoRow('步数 <b class="num">' + esc(roundNums(steps.value_text)) + '</b>', esc(fmtDate(steps.log_date)));
-    if (sleep) healthBody += bentoRow('睡眠 <b class="num">' + esc(roundNums(sleep.value_text)) + '</b>', esc(fmtDate(sleep.log_date)));
+    if (sleep) healthBody += bentoRow('睡眠 <b class="num">' + esc(sleep.value_text) + '</b>', esc(fmtDate(sleep.log_date)));
     if (weight) healthBody += bentoRow('体重 <b class="num">' + esc(weight.value_text) + '</b>', esc(fmtDate(weight.log_date)));
     bento += bentoCard('health', '健康', 'tab-health',
       healthBody || '<div class="bento-empty">还没有记录。</div>', '', 'narrow');
