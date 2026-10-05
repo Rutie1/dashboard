@@ -53,7 +53,7 @@ async function enterApp(uid) {
   var d = new Date();
   var hr = d.getHours();
   var greet = hr < 6 ? '夜深了' : hr < 12 ? '早上好' : hr < 14 ? '中午好' : hr < 18 ? '下午好' : '晚上好';
-  document.getElementById('greeting').innerHTML = greet + '，Rudy <span class="gold">·</span>';
+  document.getElementById('greeting').innerHTML = greet + '，Rudy <span class="accent">·</span>';
   document.getElementById('today-date').textContent =
     d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 · 星期' + '日一二三四五六'[d.getDay()];
   document.getElementById('health-date').value = todayStr();
@@ -136,7 +136,7 @@ async function loadToday() {
           return '<div style="margin-top:8px;"><b>' + esc(x.subject) + '</b>' +
             (x.summary ? '<div class="meta">' + esc(x.summary) + '</div>' : '') + '</div>';
         }).join('') +
-        '<div style="margin-top:10px;"><a href="javascript:void(0)" onclick="switchTab(\'tab-mail\')" style="color:var(--gold);font-size:13px;text-decoration:none;">查看全部 →</a></div></div>';
+        '<div style="margin-top:10px;"><a href="javascript:void(0)" onclick="switchTab(\'tab-mail\')" style="color:var(--accent);font-size:13px;text-decoration:none;">查看全部 →</a></div></div>';
     }
     box.innerHTML = html;
     box.querySelectorAll('[data-todo-toggle]').forEach(function (c) {
@@ -284,7 +284,7 @@ async function loadMarket() {
           var srcHtml = '';
           if (x.source) {
             srcHtml = x.source_url
-              ? '<div class="meta">来源：<a href="' + esc(x.source_url) + '" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;">' + esc(x.source) + ' →</a></div>'
+              ? '<div class="meta">来源：<a href="' + esc(x.source_url) + '" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">' + esc(x.source) + ' →</a></div>'
               : '<div class="meta">来源：' + esc(x.source) + '</div>';
           }
           return '<div class="card news-item"><h3>' + esc(x.title) + '</h3>' +
@@ -342,7 +342,7 @@ async function loadMail() {
             '<div class="mail-subject">' + esc(x.subject) + '</div>' +
             (x.sender ? '<div class="mail-meta">来自：' + esc(x.sender) + '</div>' : '') +
             (x.summary ? '<p>' + esc(x.summary) + '</p>' : '') +
-            (gmailUrl ? '<div style="margin-top:8px;"><a href="' + gmailUrl + '" target="_blank" rel="noopener" style="color:var(--gold);font-size:13px;text-decoration:none;">查看原邮件 →</a></div>' : '') +
+            (gmailUrl ? '<div style="margin-top:8px;"><a href="' + gmailUrl + '" target="_blank" rel="noopener" style="color:var(--accent);font-size:13px;text-decoration:none;">查看原邮件 →</a></div>' : '') +
             '</div></div>';
         }).join('');
     }).join('');
