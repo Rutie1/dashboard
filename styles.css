@@ -106,7 +106,7 @@ h3 { font-size: 15px; margin: 0 0 6px; font-weight: 600; }
 }
 
 /* ---------- 数据条 ---------- */
-.stat-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px; }
+.stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
 .stat {
   background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 14px 16px; box-shadow: var(--shadow); transition: transform .18s ease, box-shadow .18s ease;
@@ -134,6 +134,11 @@ h3 { font-size: 15px; margin: 0 0 6px; font-weight: 600; }
 .bento-card:nth-child(6) { animation-delay: .25s; }
 .bento-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
 .bento-card.wide { grid-column: span 4; } .bento-card.narrow { grid-column: span 2; }
+.bento-card.full { grid-column: span 6; }
+.mini-label {
+  font-size: 12px; color: var(--ink-3); letter-spacing: .2em; font-weight: 700;
+  margin: 4px 0 10px;
+}
 .bento-head { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
 .bento-head .dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
 .bento-head h3 { margin: 0; font-size: 14px; font-weight: 700; }
@@ -279,10 +284,9 @@ h3 { font-size: 15px; margin: 0 0 6px; font-weight: 600; }
 @media (max-width: 640px) {
   .hero { padding: 22px 20px; border-radius: 22px; }
   .hero-clock { font-size: 46px; }
-  .stat-strip { grid-template-columns: repeat(3, 1fr); }
-  .stat:nth-child(4), .stat:nth-child(5) { grid-column: span 1; }
+  .stat-strip { grid-template-columns: repeat(2, 1fr); }
   .bento { grid-template-columns: 1fr; }
-  .bento-card, .bento-card.wide, .bento-card.narrow { grid-column: span 1; }
+  .bento-card, .bento-card.wide, .bento-card.narrow, .bento-card.full { grid-column: span 1; }
   .photo-card { grid-column: span 1 !important; }
   .photo-grid { grid-template-columns: repeat(2, 1fr); }
   .photo-grid img { height: 110px; }

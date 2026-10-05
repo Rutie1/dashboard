@@ -202,26 +202,25 @@ async function loadToday() {
     stats += statCard('睡眠', sleep ? esc(sleep.value_text) : '—',
       sleep ? fmtDate(sleep.log_date) : '暂无数据', 'c-health');
     stats += statCard('邮件', String(visMails.length), visMails.length ? '待看摘要' : '都看完了', 'c-mail');
-    stats += statCard('行程', trip ? (tripDays > 0 ? tripDays + '天' : (tripDays === 0 ? '今天' : '进行中')) : '—',
-      trip ? String(trip.title).slice(0, 10) : '暂无计划', 'c-trips');
     document.getElementById('stat-strip').innerHTML = stats;
 
     /* --- bento 预览 --- */
     var bento = '';
-    // 行程
-    bento += bentoCard('trips', '行程', 'tab-trips', trip ?
-      bentoRow('<b>' + esc(trip.title) + '</b> · <span class="num" style="color:var(--c-trips);font-weight:800;">' +
-        (tripDays > 0 ? tripDays + ' 天后' : (tripDays === 0 ? '今天出发' : '进行中')) + '</span>',
-        esc(fmtDate(trip.start_date)) + ' → ' + esc(fmtDate(trip.end_date)))
-      : '<div class="bento-empty">还没有行程，来计划一次远方吧。</div>');
-    // 待办
-    bento += bentoCard('todos', '待办', 'tab-todos', visTodos.length ?
+    // 待办事项（含行程）
+    var todoBody = '';
+    if (trip) {
+      todoBody += bentoRow('<b>' + esc(trip.title) + '</b> · <span class="num" style="color:var(--c-trips);font-weight:800;">' +
+        (tripDays > 0 ? tripDays + ' 天后出发' : (tripDays === 0 ? '今天出发' : '进行中')) + '</span>',
+        esc(fmtDate(trip.start_date)) + ' → ' + esc(fmtDate(trip.end_date)));
+    }
+    todoBody += visTodos.length ?
       visTodos.slice(0, 3).map(function (x) {
         var over = x.due_date && x.due_date < t;
         return bentoRow(esc(x.title),
           (over ? '<span style="color:var(--red);font-weight:700;">已逾期 · </span>' : '') + (x.due_date ? esc(fmtDate(x.due_date)) : '无截止'));
       }).join('') + (visTodos.length > 3 ? '<div class="bento-empty">还有 ' + (visTodos.length - 3) + ' 件…</div>' : '')
-      : '<div class="bento-empty">今天没有待办，挺好。</div>');
+      : (trip ? '' : '<div class="bento-empty">今天没有待办，挺好。</div>');
+    bento += bentoCard('todos', '待办事项', 'tab-todos', todoBody, 'full');
     // 健康
     var weight = healths.filter(function (x) { return x.kind === 'weight'; })[0];
     var healthBody = '';
@@ -247,7 +246,7 @@ async function loadToday() {
       '<div class="link-grid" style="margin-top:4px;">' + links.map(function (x) {
         return '<a class="link-btn" style="margin-top:0;padding:7px 14px;font-size:13px;" href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.label) + '</a>';
       }).join('') + '</div>'
-      : '<div class="bento-empty">还没有链接。</div>', '', 'narrow');
+      : '<div class="bento-empty">还没有链接。</div>', '');
     document.getElementById('today-bento').innerHTML = bento;
   } catch (e) {
     document.getElementById('today-bento').innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>';
@@ -304,9 +303,7 @@ async function loadTrips() {
     });
   } catch (e) { box.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
 }
-document.getElementById('trips-refresh').addEventListener('click', loadTrips);
-
-/* ---------- 待办 ---------- */
+/* ---------- 待办（含行程） ---------- */
 async function loadTodos() {
   var box = document.getElementById('todos-list');
   box.innerHTML = loadingHTML();
